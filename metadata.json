@@ -1,0 +1,6 @@
+{
+  "name": "OEE & Eficiencia Industrial - Máquina y Operador",
+  "description": "Dashboard industrial de control de eficiencia, velocidad (und/min) y calidad por máquina y operador con cálculo automático de turnos y reportes de auditoría.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
