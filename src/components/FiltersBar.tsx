@@ -116,10 +116,10 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
                   ? 'bg-amber-600 text-white shadow-xs'
                   : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
               }`}
-              title="Turno Día: 07:05 a 18:59"
+              title="Turno Día: 07:00 a 18:59"
             >
               <Sun className="w-3 h-3 text-amber-500" />
-              <span>Día (07:05 - 18:59)</span>
+              <span>Día (07:00 - 18:59)</span>
             </button>
 
             <button
@@ -130,10 +130,10 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
                   ? 'bg-indigo-700 text-white shadow-xs'
                   : 'bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100'
               }`}
-              title="Turno Noche: 19:00 a 07:04"
+              title="Turno Noche: 19:00 a 06:59"
             >
               <Moon className="w-3 h-3 text-indigo-500" />
-              <span>Noche (19:00 - 07:04)</span>
+              <span>Noche (19:00 - 06:59)</span>
             </button>
 
             <button

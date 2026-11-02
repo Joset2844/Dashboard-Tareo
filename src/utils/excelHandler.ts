@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { ProductionRecord, ShiftType, SHIFT_BASE_MINUTES, SHIFT_BASE_HOURS } from '../types';
-import { getShiftFromTime } from './shifts';
+import { getShiftFromTime, getRecordShiftInfo } from './shifts';
 
 // Encabezados esperados del Excel
 export const REQUIRED_HEADERS = [
@@ -118,7 +118,7 @@ export async function parseExcelFile(file: File): Promise<{
             return;
           }
 
-          const turno: ShiftType = getShiftFromTime(horaIni);
+          const { turno, fechaTurno } = getRecordShiftInfo(fechaIni, horaIni);
 
           records.push({
             id: `excel-row-${rowNum}-${Date.now().toString(36)}`,
@@ -135,6 +135,7 @@ export async function parseExcelFile(file: File): Promise<{
             PliegosParc: Math.max(0, Math.round(pliegosParc)),
             pliegosparcmal: Math.max(0, Math.round(pliegosParcMal)),
             turno,
+            fechaTurno,
           });
         });
 
@@ -355,6 +356,7 @@ export function exportAuditReportToExcel(params: {
     'Máquina (MaqDes)': r.MaqDes,
     'Evento (Proceso)': r.Proceso,
     'Turno': r.turno || 'Día',
+    'Fecha Turno (Operativa)': r.fechaTurno || r.FECHAINI,
     'Fecha Inicio': r.FECHAINI,
     'Hora Inicio': r.HORAINI,
     'Fecha Fin': r.FECHAFIN,

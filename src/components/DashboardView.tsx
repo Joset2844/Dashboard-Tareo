@@ -13,10 +13,12 @@ import {
   Zap, 
   ChevronRight,
   ShieldCheck,
-  Search
+  Search,
+  ArrowLeftRight
 } from 'lucide-react';
-import { ProductionRecord, MachineTarget, FilterState, SHIFT_BASE_HOURS, SHIFT_BASE_MINUTES, GlobalPlantSettings } from '../types';
+import { ProductionRecord, MachineTarget, FilterState, ShiftType, SHIFT_BASE_HOURS, SHIFT_BASE_MINUTES, GlobalPlantSettings } from '../types';
 import { calculateConsolidatedMetrics } from '../utils/metrics';
+import { ComparativeView } from './ComparativeView';
 
 interface DashboardViewProps {
   records: ProductionRecord[];
@@ -28,6 +30,7 @@ interface DashboardViewProps {
   onSelectMachineFilter: (machineName: string) => void;
   onSelectOperatorFilter: (operatorName: string) => void;
   globalSettings?: GlobalPlantSettings;
+  currentSystemShift?: ShiftType;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -39,9 +42,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectMachineFilter,
   onSelectOperatorFilter,
   globalSettings,
+  currentSystemShift = 'DIA',
 }) => {
   const [operatorSearch, setOperatorSearch] = useState('');
-  const [activeViewMode, setActiveViewMode] = useState<'machines' | 'operators' | 'events'>('machines');
+  const [activeViewMode, setActiveViewMode] = useState<'machines' | 'operators' | 'events' | 'comparative'>('machines');
 
   const { totals, machineMetrics, operatorMetrics, topEvents } = calculateConsolidatedMetrics(
     records,
@@ -110,14 +114,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onNavigateToTargets}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 hover:underline shrink-0 cursor-pointer self-start md:self-center"
-        >
-          <span>Editar metas por máquina</span>
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+          <button
+            type="button"
+            onClick={() => setActiveViewMode('comparative')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded shadow-2xs cursor-pointer transition-colors"
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+            <span>Comparar Turnos / Operadores</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onNavigateToTargets}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 hover:underline px-2 py-1.5 cursor-pointer"
+          >
+            <span>Editar metas</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* KPI PRINCIPALES CARDS */}
@@ -269,6 +284,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             }`}
           >
             Pérdidas y Paradas ({topEvents.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveViewMode('comparative')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+              activeViewMode === 'comparative'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-blue-700 bg-blue-50/70 hover:bg-blue-100 border border-blue-200'
+            }`}
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5 text-blue-500" />
+            <span>Vista Comparativa (OEE Turnos / Grupos)</span>
           </button>
         </div>
 
@@ -568,6 +595,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* VISTA 4: COMPARATIVA AVANZADA (TURNOS, FECHAS, OPERADORES, MÁQUINAS) */}
+      {activeViewMode === 'comparative' && (
+        <ComparativeView
+          records={records}
+          machineTargets={machineTargets}
+          globalSettings={globalSettings}
+          currentSystemShift={currentSystemShift}
+          onNavigateToTargets={onNavigateToTargets}
+          onNavigateToData={onNavigateToData}
+        />
       )}
 
     </div>

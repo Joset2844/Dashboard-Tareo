@@ -10,14 +10,15 @@ import {
   LayoutDashboard, 
   Upload, 
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  ArrowLeftRight
 } from 'lucide-react';
 import { ShiftType } from '../types';
 import { getCurrentSystemShift, getNextShiftCountdown, formatShiftLabel } from '../utils/shifts';
 
 interface HeaderProps {
-  activeTab: 'dashboard' | 'targets' | 'reports' | 'data';
-  onTabChange: (tab: 'dashboard' | 'targets' | 'reports' | 'data') => void;
+  activeTab: 'dashboard' | 'comparative' | 'targets' | 'reports' | 'data';
+  onTabChange: (tab: 'dashboard' | 'comparative' | 'targets' | 'reports' | 'data') => void;
   onOpenUpload: () => void;
   totalRecordsCount: number;
 }
@@ -92,12 +93,12 @@ export const Header: React.FC<HeaderProps> = ({
                 {currentShift === 'DIA' ? (
                   <>
                     <Sun className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-amber-300">Turno Día (07:05 - 18:59)</span>
+                    <span className="text-amber-300">Turno Día (07:00 - 18:59)</span>
                   </>
                 ) : (
                   <>
                     <Moon className="w-3.5 h-3.5 text-indigo-300" />
-                    <span className="text-indigo-300">Turno Noche (19:00 - 07:04)</span>
+                    <span className="text-indigo-300">Turno Noche (19:00 - 06:59)</span>
                   </>
                 )}
               </div>
@@ -116,17 +117,17 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Tooltip flotante explicativo */}
               {showShiftInfo && (
                 <div 
-                  className="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-800 border border-slate-700 rounded-md shadow-xl text-xs z-50 text-slate-300"
+                  className="absolute right-0 top-full mt-2 w-80 p-3 bg-slate-800 border border-slate-700 rounded-md shadow-xl text-xs z-50 text-slate-300"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <p className="font-semibold text-white mb-1.5 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-blue-400" /> Sistema Automático de Turnos
                   </p>
-                  <ul className="space-y-1 text-[11px] text-slate-300 mb-2">
-                    <li>• <strong className="text-amber-300">Turno Día:</strong> 07:05 a 18:59</li>
-                    <li>• <strong className="text-indigo-300">Turno Noche:</strong> 19:00 a 07:04</li>
-                    <li>• Las producciones que cierran poco más de las 7 (hasta 07:04) se asignan automáticamente al Turno Noche.</li>
-                    <li>• El sistema asigna automáticamente el turno de cada registro según su <code className="text-slate-200">HORAINI</code>.</li>
+                  <ul className="space-y-1.5 text-[11px] text-slate-300 mb-2">
+                    <li>• <strong className="text-amber-300">Turno Día:</strong> 07:00 a 18:59</li>
+                    <li>• <strong className="text-indigo-300">Turno Noche:</strong> 19:00 a 06:59 (día siguiente)</li>
+                    <li>• <strong className="text-blue-300">Fecha Operativa:</strong> Todo registro que inicia entre las 19:00 de hoy y las 06:59 de mañana pertenece al Turno Noche de hoy.</li>
+                    <li>• La asignación se realiza siempre según la <code className="text-slate-200">HORAINI</code> del evento.</li>
                   </ul>
                   <div className="text-[11px] font-mono text-blue-300 bg-slate-900/80 p-1.5 rounded">
                     Próximo cambio: {countdown.targetTimeStr}
@@ -165,6 +166,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <LayoutDashboard className="w-4 h-4" />
             <span>Dashboard de Eficiencia</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTabChange('comparative')}
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded font-medium transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'comparative'
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            <span>Análisis Comparativo</span>
           </button>
 
           <button

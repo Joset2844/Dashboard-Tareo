@@ -1,5 +1,5 @@
 import { ProductionRecord, MachineTarget, FilterState, SHIFT_BASE_MINUTES } from '../types';
-import { getShiftFromTime } from './shifts';
+import { getShiftFromTime, getOperationalDate } from './shifts';
 
 // Lista por defecto de eventos que constituyen tiempo neto de producción
 export const DEFAULT_PRODUCTION_EVENTS = [
@@ -384,8 +384,8 @@ export function filterProductionRecords(
       return false;
     }
 
-    // 1. Filtro Turno (evaluado con regla de planta: Día 07:05-18:59, Noche 19:00-07:04)
-    const recShift = getShiftFromTime(rec.HORAINI) || rec.turno;
+    // 1. Filtro Turno (evaluado con hora de inicio HORAINI: Día 07:00-18:59, Noche 19:00-06:59)
+    const recShift = rec.turno || getShiftFromTime(rec.HORAINI);
     if (filters.turno === 'DIA' && recShift !== 'DIA') return false;
     if (filters.turno === 'NOCHE' && recShift !== 'NOCHE') return false;
     if (filters.turno === 'ACTUAL' && recShift !== currentSystemShift) return false;
@@ -405,14 +405,13 @@ export function filterProductionRecords(
       if ((rec.Proceso || '').trim().toLowerCase() !== filters.proceso.trim().toLowerCase()) return false;
     }
 
-    // 5. Filtro Fecha Inicio / Fin
-    if (filters.fechaInicio && rec.FECHAINI) {
-      const recDate = normalizeDateStr(rec.FECHAINI);
-      if (recDate && recDate < filters.fechaInicio) return false;
+    // 5. Filtro Fecha Inicio / Fin (Evalúa la fecha operativa del turno para no separar la madrugada del turno noche)
+    const recDate = rec.fechaTurno || getOperationalDate(rec.FECHAINI, rec.HORAINI);
+    if (filters.fechaInicio && recDate) {
+      if (recDate < filters.fechaInicio) return false;
     }
-    if (filters.fechaFin && rec.FECHAINI) {
-      const recDate = normalizeDateStr(rec.FECHAINI);
-      if (recDate && recDate > filters.fechaFin) return false;
+    if (filters.fechaFin && recDate) {
+      if (recDate > filters.fechaFin) return false;
     }
 
     // 6. Búsqueda libre (OP, Descripción u Operador)

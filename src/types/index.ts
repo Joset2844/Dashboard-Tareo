@@ -19,6 +19,7 @@ export interface ProductionRecord {
   PliegosParc: number;        // Cantidad buena
   pliegosparcmal: number;     // Cantidad defectuosa (mermas / scrap)
   turno?: ShiftType;          // Turno calculado automáticamente (Día o Noche)
+  fechaTurno?: string;        // Fecha operativa del turno (YYYY-MM-DD): eventos nocturnos de madrugada pertenecen al día anterior
 }
 
 export interface GlobalPlantSettings {

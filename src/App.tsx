@@ -9,17 +9,18 @@ import {
   filterProductionRecords, 
   syncMachinesFromRecords 
 } from './utils/metrics';
-import { getCurrentSystemShift, getShiftFromTime } from './utils/shifts';
+import { getCurrentSystemShift, getShiftFromTime, getRecordShiftInfo } from './utils/shifts';
 
 import { Header } from './components/Header';
 import { FiltersBar } from './components/FiltersBar';
 import { DashboardView } from './components/DashboardView';
+import { ComparativeView } from './components/ComparativeView';
 import { MachineTargetsView } from './components/MachineTargetsView';
 import { AuditReportsView } from './components/AuditReportsView';
 import { DataManagementView } from './components/DataManagementView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'targets' | 'reports' | 'data'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'comparative' | 'targets' | 'reports' | 'data'>('dashboard');
   const [currentSystemShift, setCurrentSystemShift] = useState<ShiftType>(getCurrentSystemShift());
 
   // Parámetros Generales de Planta (Meta de Calidad y Umbral de Alerta universales para todas las máquinas)
@@ -46,11 +47,15 @@ export default function App() {
         const parsed = JSON.parse(saved);
         // Descartar si era data de la demo anterior
         if (Array.isArray(parsed) && parsed.length > 0 && !parsed.some(r => String(r.id).startsWith('rec-'))) {
-          // Re-evaluar turno con los límites exactos de planta: Día 07:05 - 18:59, Noche 19:00 - 07:04
-          return parsed.map((r: ProductionRecord) => ({
-            ...r,
-            turno: getShiftFromTime(r.HORAINI),
-          }));
+          // Re-evaluar turno con los límites exactos: Día 07:00 - 18:59, Noche 19:00 - 06:59
+          return parsed.map((r: ProductionRecord) => {
+            const shiftInfo = getRecordShiftInfo(r.FECHAINI, r.HORAINI);
+            return {
+              ...r,
+              turno: shiftInfo.turno,
+              fechaTurno: r.fechaTurno || shiftInfo.fechaTurno,
+            };
+          });
         }
       }
     } catch {
@@ -312,6 +317,18 @@ export default function App() {
             onSelectMachineFilter={handleSelectMachineFilter}
             onSelectOperatorFilter={handleSelectOperatorFilter}
             globalSettings={globalSettings}
+            currentSystemShift={currentSystemShift}
+          />
+        )}
+
+        {activeTab === 'comparative' && (
+          <ComparativeView
+            records={records}
+            machineTargets={machineTargets}
+            globalSettings={globalSettings}
+            currentSystemShift={currentSystemShift}
+            onNavigateToTargets={() => setActiveTab('targets')}
+            onNavigateToData={() => setActiveTab('data')}
           />
         )}
 
@@ -357,10 +374,10 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-200">Sistema de Eficiencia & OEE</span>
             <span className="text-slate-600">|</span>
-            <span>Turno Día: 07:05 a 18:59 • Turno Noche: 19:00 a 07:04</span>
+            <span>Turno Día: 07:00 a 18:59 • Turno Noche: 19:00 a 06:59</span>
           </div>
           <div className="flex items-center gap-3 text-slate-500">
-            <span>Base estándar de turno: 11.25 horas (675 minutos) • Excluye máquinas eliminadas</span>
+            <span>Base estándar de turno: 11.25 horas (675 minutos) • Asignación por hora inicio (HORAINI)</span>
           </div>
         </div>
       </footer>

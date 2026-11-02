@@ -79,8 +79,8 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
 
   const shiftLabel = 
     filters.turno === 'TODOS' ? 'Ambos Turnos (Día y Noche)' :
-    filters.turno === 'DIA' ? 'Turno Día (07:05 - 18:59)' :
-    filters.turno === 'NOCHE' ? 'Turno Noche (19:00 - 07:04)' :
+    filters.turno === 'DIA' ? 'Turno Día (07:00 - 18:59)' :
+    filters.turno === 'NOCHE' ? 'Turno Noche (19:00 - 06:59)' :
     `Turno Actual en Curso (${currentSystemShift})`;
 
   const machineLabel = filters.maqDes !== 'TODAS' ? filters.maqDes : 'Todas las máquinas';

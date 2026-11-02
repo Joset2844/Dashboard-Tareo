@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { ProductionRecord, ShiftType } from '../types';
 import { parseExcelFile, downloadExcelTemplate } from '../utils/excelHandler';
-import { getShiftFromTime } from '../utils/shifts';
+import { getShiftFromTime, getRecordShiftInfo, getOperationalDate } from '../utils/shifts';
 
 interface DataManagementViewProps {
   records: ProductionRecord[];
@@ -84,6 +84,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
   const handleAddRowSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const horaIni = newRow.HORAINI || '08:00';
+    const fecIni = newRow.FECHAINI || new Date().toISOString().split('T')[0];
+    const shiftInfo = getRecordShiftInfo(fecIni, horaIni);
+
     const created: ProductionRecord = {
       id: `manual-${Date.now()}`,
       odtcod: newRow.odtcod || 'OP-00000',
@@ -91,14 +94,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
       DesOperador: newRow.DesOperador || 'Operador',
       MaqDes: newRow.MaqDes || 'Máquina',
       Proceso: newRow.Proceso || 'Producción',
-      FECHAINI: newRow.FECHAINI || new Date().toISOString().split('T')[0],
+      FECHAINI: fecIni,
       HORAINI: horaIni,
-      FECHAFIN: newRow.FECHAFIN || newRow.FECHAINI || new Date().toISOString().split('T')[0],
+      FECHAFIN: newRow.FECHAFIN || fecIni,
       HORAFIN: newRow.HORAFIN || horaIni,
       minutos: Number(newRow.minutos) || 0,
       PliegosParc: Number(newRow.PliegosParc) || 0,
       pliegosparcmal: Number(newRow.pliegosparcmal) || 0,
-      turno: getShiftFromTime(horaIni),
+      turno: shiftInfo.turno,
+      fechaTurno: shiftInfo.fechaTurno,
     };
 
     onUpdateRecords([created, ...records]);
@@ -467,7 +471,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 </tr>
               ) : (
                 paginatedRows.map((r) => {
-                  const shift = getShiftFromTime(r.HORAINI) || r.turno;
+                  const shift = r.turno || getShiftFromTime(r.HORAINI);
+                  const operationalDate = r.fechaTurno || getOperationalDate(r.FECHAINI, r.HORAINI);
                   const speed = (r.minutos > 0 && r.PliegosParc > 0)
                     ? Math.round((r.PliegosParc / r.minutos) * 10) / 10
                     : 0;
@@ -497,12 +502,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                       </td>
                       <td className="py-2 px-2.5 text-center whitespace-nowrap">
                         {shift === 'DIA' ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200" title={`Turno Día (07:00 - 18:59) • Fecha Operativa: ${operationalDate}`}>
                             <Sun className="w-2.5 h-2.5 text-amber-500" /> Día
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200" title={`Turno Noche (19:00 - 06:59) • Fecha Operativa: ${operationalDate}`}>
                             <Moon className="w-2.5 h-2.5 text-indigo-500" /> Noche
+                          </span>
+                        )}
+                        {operationalDate && (
+                          <span className="block text-[9px] text-slate-400 font-mono mt-0.5" title="Fecha Operativa del Turno">
+                            {operationalDate}
                           </span>
                         )}
                       </td>
