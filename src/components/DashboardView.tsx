@@ -14,7 +14,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Search,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Printer,
+  FileDown
 } from 'lucide-react';
 import { ProductionRecord, MachineTarget, FilterState, ShiftType, SHIFT_BASE_HOURS, SHIFT_BASE_MINUTES, GlobalPlantSettings } from '../types';
 import { calculateConsolidatedMetrics } from '../utils/metrics';
@@ -59,6 +61,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     op.operador.toLowerCase().includes(operatorSearch.toLowerCase())
   );
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Estado vacío si aún no se ha subido ningún Excel
   if (records.length === 0 && filters.maqDes === 'TODAS' && filters.desOperador === 'TODOS') {
     return (
@@ -88,10 +94,47 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-4 print-document">
       
+      {/* CABECERA FORMAL PARA EL REPORTE IMPRESO / PDF */}
+      <div className="hidden print:block border-b-2 border-slate-900 pb-4 mb-4">
+        <div className="flex justify-between items-start gap-4">
+          <div>
+            <span className="text-[11px] font-bold tracking-widest text-blue-700 uppercase">
+              SISTEMA INDUSTRIAL DE GESTIÓN & CONTROL DE EFICIENCIA OPERACIONAL
+            </span>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-0.5">
+              Reporte Ejecutivo de Eficiencia de Planta & OEE
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Velocidad en tiempo neto de producción (und/min), calidad y disponibilidad | Base estándar de turno: {SHIFT_BASE_HOURS}h ({SHIFT_BASE_MINUTES} min)
+            </p>
+          </div>
+          <div className="text-right text-xs text-slate-600 space-y-0.5 shrink-0">
+            <div><strong>Fecha Emisión:</strong> {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
+            <div>
+              <strong>Turno:</strong>{' '}
+              <span className="font-semibold text-slate-900">
+                {filters.turno === 'TODOS'
+                  ? 'Todos los Turnos'
+                  : filters.turno === 'DIA'
+                  ? 'Turno Día (07:00 - 18:59)'
+                  : filters.turno === 'NOCHE'
+                  ? 'Turno Noche (19:00 - 06:59)'
+                  : `Turno Actual (${currentSystemShift})`}
+              </span>
+            </div>
+            <div><strong>Filtro Máquina:</strong> <span className="font-semibold text-slate-900">{filters.maqDes}</span></div>
+            <div><strong>Filtro Operador:</strong> <span className="font-semibold text-slate-900">{filters.desOperador}</span></div>
+            {filters.fechaInicio && (
+              <div><strong>Periodo:</strong> {filters.fechaInicio} al {filters.fechaFin || 'Hoy'}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* BANNER INFORMATIVO SOBRE BASE DE CÁLCULO: 11.25 HORAS / 675 MINUTOS */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-slate-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-slate-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded bg-blue-500/10 text-blue-400 shrink-0 mt-0.5">
             <Gauge className="w-5 h-5" />
@@ -114,14 +157,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 self-start md:self-center">
+          {/* BOTÓN: DOWNLOAD PDF REPORT (window.print() con CSS media print) */}
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-rose-700 hover:bg-rose-600 active:bg-rose-800 px-3 py-1.5 rounded shadow-xs cursor-pointer transition-colors border border-rose-600/30"
+            title="Download PDF Report - Genera el reporte oficial de planta usando el diálogo de impresión / Guardar como PDF"
+          >
+            <FileDown className="w-3.5 h-3.5" />
+            <span>Download PDF Report</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveViewMode('comparative')}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded shadow-2xs cursor-pointer transition-colors"
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>Comparar Turnos / Operadores</span>
+            <span>Comparar Turnos</span>
           </button>
 
           <button
@@ -136,7 +190,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* KPI PRINCIPALES CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 print:grid-cols-5 print:gap-2.5 print:mb-4">
         
         {/* KPI 1: Eficiencia Global de Velocidad vs Metas */}
         <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs hover:border-slate-300 transition-all">
@@ -249,8 +303,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       </div>
 
-      {/* TABS DE VISTA SECUNDARIA */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+      {/* TABS DE VISTA SECUNDARIA (Oculto en Impresión) */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2 no-print">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -304,8 +358,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </span>
       </div>
 
-      {/* VISTA 1: RENDIMIENTO POR MÁQUINA */}
-      {activeViewMode === 'machines' && (
+      {/* VISTAS INTERACTIVAS EN PANTALLA (Ocultas en Impresión para dar paso al reporte formal) */}
+      <div className="print:hidden space-y-4">
+        {/* VISTA 1: RENDIMIENTO POR MÁQUINA */}
+        {activeViewMode === 'machines' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {machineMetrics.map((machine) => {
@@ -608,6 +664,173 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onNavigateToData={onNavigateToData}
         />
       )}
+      </div>
+
+      {/* REPORTE INDUSTRIAL COMPLETO PARA IMPRESIÓN / GUARDAR COMO PDF (hidden en pantalla, visible en @media print) */}
+      <div className="hidden print:block space-y-6">
+        
+        {/* 1. SECCIÓN: RENDIMIENTO POR MÁQUINA */}
+        <div className="space-y-2 break-inside-avoid">
+          <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              1. Rendimiento y Cumplimiento de Metas por Máquina ({machineMetrics.length})
+            </h3>
+            <span className="text-[10px] text-slate-500 font-mono">
+              Filtro: {filters.maqDes} | Base oficial: {SHIFT_BASE_HOURS}h ({SHIFT_BASE_MINUTES} min)
+            </span>
+          </div>
+
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
+              <tr>
+                <th className="py-2 px-2.5">Máquina (MaqDes)</th>
+                <th className="py-2 px-2.5 text-right">Meta u/m</th>
+                <th className="py-2 px-2.5 text-right">Meta Turno (675m)</th>
+                <th className="py-2 px-2.5 text-right">Real u/m</th>
+                <th className="py-2 px-2.5 text-right">Eficiencia (%)</th>
+                <th className="py-2 px-2.5 text-right">Calidad (%)</th>
+                <th className="py-2 px-2.5 text-right">Tiempo Prod</th>
+                <th className="py-2 px-2.5 text-right">U. Buenas</th>
+                <th className="py-2 px-2.5 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {machineMetrics.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-4 text-center text-slate-400">
+                    Sin registros de máquinas para el filtro seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                machineMetrics.map((m) => (
+                  <tr key={m.maqDes}>
+                    <td className="py-1.5 px-2.5 font-semibold text-slate-900">{m.maqDes}</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-600">{m.metaUndMin} u/m</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-600">{m.metaTurnoBase.toLocaleString()}</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-900">{m.realUndMin} u/m</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-900">{m.eficienciaVelocidad}%</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-800">{m.tasaCalidad}%</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-600">{m.minutosProd}m</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-900">{m.pliegosBuenos.toLocaleString()}</td>
+                    <td className="py-1.5 px-2.5 text-center font-bold text-[10px]">
+                      {m.recordsCount === 0 ? (
+                        <span className="text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">SIN REGISTROS</span>
+                      ) : m.status === 'green' ? (
+                        <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">CUMPLE</span>
+                      ) : m.status === 'yellow' ? (
+                        <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">ALERTA</span>
+                      ) : (
+                        <span className="text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">BAJO META</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 2. SECCIÓN: RANKING Y RENDIMIENTO POR OPERADOR */}
+        <div className="space-y-2 break-inside-avoid">
+          <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              2. Ranking y Rendimiento por Operador ({operatorMetrics.length})
+            </h3>
+            <span className="text-[10px] text-slate-500 font-mono">
+              Filtro: {filters.desOperador}
+            </span>
+          </div>
+
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
+              <tr>
+                <th className="py-2 px-2.5">Operador</th>
+                <th className="py-2 px-2.5">Máquinas Asignadas</th>
+                <th className="py-2 px-2.5 text-right">Vel. Media (und/min)</th>
+                <th className="py-2 px-2.5 text-right">Eficiencia (%)</th>
+                <th className="py-2 px-2.5 text-right">Calidad (%)</th>
+                <th className="py-2 px-2.5 text-right">Scrap (%)</th>
+                <th className="py-2 px-2.5 text-right">Pliegos Buenos</th>
+                <th className="py-2 px-2.5 text-right">Tiempo en Prod.</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {operatorMetrics.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-4 text-center text-slate-400">
+                    Sin registros de operadores para el filtro seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                operatorMetrics.map((op) => (
+                  <tr key={op.operador}>
+                    <td className="py-1.5 px-2.5 font-semibold text-slate-900">{op.operador}</td>
+                    <td className="py-1.5 px-2.5 text-slate-600 max-w-[180px] truncate">{op.maquinas.join(', ')}</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-900">{op.realUndMin} u/m</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-900">{op.eficienciaVelocidad}%</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-emerald-700">{op.tasaCalidad}%</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-rose-600">{op.tasaMerma}%</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-900">{op.pliegosBuenos.toLocaleString()}</td>
+                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-600">{op.minutosProd} min</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 3. SECCIÓN: CAUSAS DE PARADA Y PÉRDIDAS */}
+        <div className="space-y-2 break-inside-avoid">
+          <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              3. Causas Principales de Parada e Inactividad ({topEvents.length})
+            </h3>
+            <span className="text-[10px] text-slate-500 font-mono">
+              Total paradas: {totals.totalMinutosParadas} min | Prod efectiva: {totals.totalMinutosProduccion} min
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {topEvents.slice(0, 6).map(evt => (
+              <div key={evt.proceso} className="bg-slate-50 border border-slate-200 rounded p-2 text-[11px]">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-slate-900">{evt.proceso}</span>
+                  <span className="font-mono text-indigo-900 font-bold">{evt.minutos} min ({evt.porcentaje}%)</span>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  {evt.esProduccion ? 'Producción Efectiva' : 'Parada / Inactividad'} • {evt.veces} ocurrencias
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. SECCIÓN: CONFORMIDAD Y FIRMAS PARA AUDITORÍAS INTERNAS */}
+        <div className="pt-8 border-t border-slate-300 break-inside-avoid">
+          <div className="text-[11px] text-slate-600 italic mb-6">
+            Certificación emitida desde el panel de control de planta. Los cálculos de eficiencia computan estrictamente los minutos en eventos de producción en turnos estándar de {SHIFT_BASE_HOURS} horas ({SHIFT_BASE_MINUTES} min).
+          </div>
+
+          <div className="grid grid-cols-3 gap-8 text-center text-xs">
+            <div>
+              <div className="border-b border-slate-400 w-44 mx-auto mb-2" />
+              <div className="font-bold text-slate-800">Supervisión de Turno</div>
+              <div className="text-[10px] text-slate-500">Control Operativo de Planta</div>
+            </div>
+            <div>
+              <div className="border-b border-slate-400 w-44 mx-auto mb-2" />
+              <div className="font-bold text-slate-800">Control de Calidad & Procesos</div>
+              <div className="text-[10px] text-slate-500">Certificación de Parámetros</div>
+            </div>
+            <div>
+              <div className="border-b border-slate-400 w-44 mx-auto mb-2" />
+              <div className="font-bold text-slate-800">Jefatura de Operaciones / Planta</div>
+              <div className="text-[10px] text-slate-500">Aprobación Final</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
     </div>
   );

@@ -17,6 +17,8 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -26,6 +28,8 @@
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* El documento imprimible se expande a formato de página completa */
@@ -35,7 +39,15 @@
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     background: #ffffff !important;
+  }
+
+  /* Tarjetas y tablas en impresión */
+  .print-document .bg-white {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
   }
 
   /* Tablas y filas no se cortan entre páginas */
@@ -44,14 +56,14 @@
     break-inside: avoid !important;
   }
 
-  .page-break-avoid {
+  .page-break-avoid, .break-inside-avoid {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
   @page {
     size: A4 portrait;
-    margin: 12mm 14mm 14mm 14mm;
+    margin: 10mm 12mm 12mm 12mm;
   }
 }
 
