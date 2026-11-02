@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ShiftType } from '../types';
 import { getCurrentSystemShift, getNextShiftCountdown, formatShiftLabel } from '../utils/shifts';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   activeTab: 'dashboard' | 'comparative' | 'targets' | 'reports' | 'data';
@@ -136,8 +137,9 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Acciones rápidas de carga */}
-            <div className="flex items-center gap-1.5">
+            {/* Acciones rápidas: Instalar App (PWA) y carga de datos */}
+            <div className="flex items-center gap-2">
+              <PWAInstallButton />
               <button
                 type="button"
                 onClick={onOpenUpload}

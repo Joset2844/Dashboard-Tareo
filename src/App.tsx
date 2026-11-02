@@ -18,6 +18,7 @@ import { ComparativeView } from './components/ComparativeView';
 import { MachineTargetsView } from './components/MachineTargetsView';
 import { AuditReportsView } from './components/AuditReportsView';
 import { DataManagementView } from './components/DataManagementView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'comparative' | 'targets' | 'reports' | 'data'>('dashboard');
@@ -281,6 +282,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+      {/* INDICADOR DE MODO SIN CONEXIÓN */}
+      <OfflineIndicator />
       
       {/* CABECERA PRINCIPAL CON INDICADOR DE TURNO EN VIVO */}
       <Header
