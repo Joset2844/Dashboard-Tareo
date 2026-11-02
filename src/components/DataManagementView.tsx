@@ -40,7 +40,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
   const [newRow, setNewRow] = useState<Partial<ProductionRecord>>({
     odtcod: 'OP-45100',
     ODTDESCRIP: 'Nuevo Producto / Empaque',
-    DesOperador: 'Carlos Méndez',
+    DesOperador: 'Operador 01',
     MaqDes: 'Heidelberg Speedmaster XL 106',
     Proceso: 'Producción',
     FECHAINI: new Date().toISOString().split('T')[0],

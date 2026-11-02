@@ -180,7 +180,7 @@ export function downloadExcelTemplate(): void {
     {
       odtcod: 'OP-45012',
       ODTDESCRIP: 'Estuche Jarabe Pediátrico 120ml',
-      DesOperador: 'Carlos Méndez',
+      DesOperador: 'Operador 01',
       MaqDes: 'Heidelberg Speedmaster XL 106',
       Proceso: 'Producción',
       FECHAINI: '2026-10-31',
@@ -194,7 +194,7 @@ export function downloadExcelTemplate(): void {
     {
       odtcod: 'OP-45012',
       ODTDESCRIP: 'Estuche Jarabe Pediátrico 120ml',
-      DesOperador: 'Carlos Méndez',
+      DesOperador: 'Operador 01',
       MaqDes: 'Heidelberg Speedmaster XL 106',
       Proceso: 'Limpieza y Lavado',
       FECHAINI: '2026-10-31',

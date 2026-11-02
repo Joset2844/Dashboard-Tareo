@@ -42,7 +42,7 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
   globalSettings,
 }) => {
   const [reportTitle, setReportTitle] = useState('Informe de Auditoría Interna de Eficiencia Operacional & OEE');
-  const [auditorName, setAuditorName] = useState('Ing. José Tejera - Control de Gestión & Auditoría');
+  const [auditorName, setAuditorName] = useState('Dpto. Control de Gestión & Auditoría');
   const [auditNotes, setAuditNotes] = useState(`Auditoría de cumplimiento de velocidad estándar (und/min) y metas basadas en turnos de ${SHIFT_BASE_HOURS}h (${SHIFT_BASE_MINUTES} min).`);
 
   // Cálculo de métricas pasando estrictamente el filtro de máquina activo y los parámetros globales
@@ -341,6 +341,7 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
               type="text"
               value={auditorName}
               onChange={(e) => setAuditorName(e.target.value)}
+              placeholder="Ej. Control de Gestión & Auditoría Interna"
               className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
