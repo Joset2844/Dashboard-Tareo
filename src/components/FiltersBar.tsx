@@ -84,7 +84,7 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
   };
 
   return (
-    <div className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3.5 shadow-xs">
+    <div className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3.5 shadow-xs no-print">
       <div className="max-w-7xl mx-auto space-y-3">
         
         {/* Fila principal: Filtros por Turno, Búsqueda */}

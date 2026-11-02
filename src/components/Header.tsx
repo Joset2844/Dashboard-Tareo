@@ -11,15 +11,16 @@ import {
   Upload, 
   RefreshCw,
   AlertCircle,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Activity
 } from 'lucide-react';
 import { ShiftType } from '../types';
 import { getCurrentSystemShift, getNextShiftCountdown, formatShiftLabel } from '../utils/shifts';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
-  activeTab: 'dashboard' | 'comparative' | 'targets' | 'reports' | 'data';
-  onTabChange: (tab: 'dashboard' | 'comparative' | 'targets' | 'reports' | 'data') => void;
+  activeTab: 'dashboard' | 'comparative' | 'events' | 'targets' | 'reports' | 'data';
+  onTabChange: (tab: 'dashboard' | 'comparative' | 'events' | 'targets' | 'reports' | 'data') => void;
   onOpenUpload: () => void;
   totalRecordsCount: number;
 }
@@ -47,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-slate-100 sticky top-0 z-40 shadow-sm">
+    <header className="bg-slate-900 border-b border-slate-800 text-slate-100 sticky top-0 z-40 shadow-sm no-print">
       {/* Barra superior con branding e indicador de Turno en vivo */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -181,6 +182,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <ArrowLeftRight className="w-4 h-4" />
             <span>Análisis Comparativo</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTabChange('events')}
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded font-medium transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'events'
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span>Eventos & Paradas</span>
           </button>
 
           <button

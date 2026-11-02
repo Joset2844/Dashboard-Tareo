@@ -20,7 +20,7 @@ import {
 import { ProductionRecord, MachineTarget, FilterState, SHIFT_BASE_HOURS, SHIFT_BASE_MINUTES, GlobalPlantSettings } from '../types';
 import { calculateConsolidatedMetrics } from '../utils/metrics';
 import { exportAuditReportToExcel } from '../utils/excelHandler';
-import { exportAuditReportToPdf } from '../utils/pdfExporter';
+import { exportAuditReportToPdf, printAuditReportPdf } from '../utils/pdfExporter';
 
 interface AuditReportsViewProps {
   records: ProductionRecord[];
@@ -29,6 +29,7 @@ interface AuditReportsViewProps {
   onFilterChange: (newFilters: FilterState) => void;
   currentSystemShift: 'DIA' | 'NOCHE';
   onNavigateToData?: () => void;
+  onNavigateToEvents?: () => void;
   globalSettings?: GlobalPlantSettings;
 }
 
@@ -39,6 +40,7 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
   onFilterChange,
   currentSystemShift,
   onNavigateToData,
+  onNavigateToEvents,
   globalSettings,
 }) => {
   const [reportTitle, setReportTitle] = useState('Informe de Auditoría Interna de Eficiencia Operacional & OEE');
@@ -139,7 +141,20 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
   };
 
   const handlePrint = () => {
-    window.print();
+    printAuditReportPdf({
+      reportTitle,
+      auditorName,
+      shiftFilter: shiftLabel,
+      machineFilter: machineLabel,
+      operatorFilter: operatorLabel,
+      processFilter: processLabel,
+      dateFilter: dateLabel,
+      kpis: totals,
+      machineMetrics,
+      operatorMetrics,
+      topEvents,
+      globalSettings,
+    });
   };
 
   // Si no hay ningún registro en todo el sistema
@@ -175,7 +190,7 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
     <div className="space-y-6">
       
       {/* PANEL DE CONTROL DEL REPORTE */}
-      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4 no-print">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -356,10 +371,28 @@ export const AuditReportsView: React.FC<AuditReportsViewProps> = ({
             />
           </div>
         </div>
+
+        {filters.proceso !== 'TODOS' && onNavigateToEvents && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 text-indigo-900">
+              <Activity className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>
+                Filtro activo de evento: <strong className="font-bold">"{filters.proceso}"</strong>. Puedes revisar cuánto tiempo ocurrió por máquina, operador y fechas con su informe oficial en el módulo especializado.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onNavigateToEvents}
+              className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded text-xs transition cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              Abrir Análisis de Eventos →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* VISTA PREVIA DEL DOCUMENTO DE AUDITORÍA */}
-      <div className="bg-white border border-slate-200 rounded-lg p-6 sm:p-8 shadow-xs space-y-6 print:shadow-none print:border-none print:p-0">
+      <div id="audit-printable-document" className="print-document bg-white border border-slate-200 rounded-lg p-6 sm:p-8 shadow-xs space-y-6 print:shadow-none print:border-none print:p-0">
         
         {/* Cabecera del Certificado de Auditoría */}
         <div className="border-b-2 border-slate-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

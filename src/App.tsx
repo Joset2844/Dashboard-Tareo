@@ -18,10 +18,11 @@ import { ComparativeView } from './components/ComparativeView';
 import { MachineTargetsView } from './components/MachineTargetsView';
 import { AuditReportsView } from './components/AuditReportsView';
 import { DataManagementView } from './components/DataManagementView';
+import { EventAnalysisView } from './components/EventAnalysisView';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'comparative' | 'targets' | 'reports' | 'data'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'comparative' | 'events' | 'targets' | 'reports' | 'data'>('dashboard');
   const [currentSystemShift, setCurrentSystemShift] = useState<ShiftType>(getCurrentSystemShift());
 
   // Parámetros Generales de Planta (Meta de Calidad y Umbral de Alerta universales para todas las máquinas)
@@ -335,6 +336,16 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'events' && (
+          <EventAnalysisView
+            records={records}
+            machineTargets={machineTargets}
+            currentSystemShift={currentSystemShift}
+            productionEvents={productionEvents}
+            onNavigateToData={() => setActiveTab('data')}
+          />
+        )}
+
         {activeTab === 'targets' && (
           <MachineTargetsView
             machineTargets={machineTargets}
@@ -359,6 +370,7 @@ export default function App() {
             onFilterChange={setFilters}
             currentSystemShift={currentSystemShift}
             onNavigateToData={() => setActiveTab('data')}
+            onNavigateToEvents={() => setActiveTab('events')}
             globalSettings={globalSettings}
           />
         )}
@@ -372,7 +384,7 @@ export default function App() {
       </main>
 
       {/* PIE DE PÁGINA INDUSTRIAL */}
-      <footer className="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-4 px-4 sm:px-6 lg:px-8 mt-auto">
+      <footer className="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-4 px-4 sm:px-6 lg:px-8 mt-auto no-print">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-200">Sistema de Eficiencia & OEE</span>

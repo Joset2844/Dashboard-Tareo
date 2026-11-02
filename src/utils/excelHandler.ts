@@ -372,3 +372,144 @@ export function exportAuditReportToExcel(params: {
   const fileName = `Auditoria_Eficiencia_${new Date().toISOString().split('T')[0]}.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
+
+/**
+ * Exporta el análisis e informe de un evento específico o paradas a Excel (.xlsx)
+ */
+export function exportEventAnalysisToExcel(params: {
+  eventName: string;
+  filtersDescription: {
+    dateRange: string;
+    machines: string;
+    operator: string;
+    shift: string;
+  };
+  summary: {
+    eventoNombre: string;
+    esProduccion: boolean;
+    totalMinutos: number;
+    totalHoras: number;
+    totalOcurrencias: number;
+    duracionPromedioMin: number;
+    minutosPlantaTotalPeriodo: number;
+    porcentajeSobreTotalPlanta: number;
+    totalPliegosBuenos: number;
+    totalPliegosMalos: number;
+    maquinasImpacto: Array<{
+      maqDes: string;
+      minutos: number;
+      horas: number;
+      veces: number;
+      porcentajeDelEvento: number;
+      duracionPromedioMin: number;
+      operadoresInvolucrados: string[];
+    }>;
+    operadoresImpacto: Array<{
+      operador: string;
+      minutos: number;
+      horas: number;
+      veces: number;
+      porcentajeDelEvento: number;
+      duracionPromedioMin: number;
+      maquinasInvolucradas: string[];
+    }>;
+    fechasImpacto: Array<{
+      fecha: string;
+      turno: string;
+      minutos: number;
+      horas: number;
+      veces: number;
+      maquinas: string[];
+      operadores: string[];
+    }>;
+    registrosFiltrados: Array<any>;
+  };
+}): void {
+  const wb = XLSX.utils.book_new();
+  const { eventName, filtersDescription, summary } = params;
+
+  // 1. Resumen Ejecutivo
+  const resumenRows = [
+    { 'Concepto': 'Evento / Proceso Analizado', 'Valor': eventName },
+    { 'Concepto': 'Tipo de Evento', 'Valor': summary.esProduccion ? 'Producción Efectiva' : 'Parada / Inactividad' },
+    { 'Concepto': 'Periodo de Fechas', 'Valor': filtersDescription.dateRange },
+    { 'Concepto': 'Máquinas Filtradas', 'Valor': filtersDescription.machines },
+    { 'Concepto': 'Operadores Filtrados', 'Valor': filtersDescription.operator },
+    { 'Concepto': 'Turno Filtrado', 'Valor': filtersDescription.shift },
+    { 'Concepto': 'Tiempo Total Acumulado (Minutos)', 'Valor': summary.totalMinutos },
+    { 'Concepto': 'Tiempo Total Acumulado (Horas)', 'Valor': summary.totalHoras },
+    { 'Concepto': 'Total de Ocurrencias / Registros', 'Valor': summary.totalOcurrencias },
+    { 'Concepto': 'Duración Promedio por Evento (Minutos)', 'Valor': summary.duracionPromedioMin },
+    { 'Concepto': '% Impacto sobre Tiempo Total de Planta', 'Valor': `${summary.porcentajeSobreTotalPlanta}%` },
+    { 'Concepto': 'Pliegos Conformes Conducidos', 'Valor': summary.totalPliegosBuenos },
+    { 'Concepto': 'Pliegos de Merma / Scrap', 'Valor': summary.totalPliegosMalos },
+    { 'Concepto': 'Fecha de Emisión del Reporte', 'Valor': new Date().toLocaleString() },
+  ];
+  const wsResumen = XLSX.utils.json_to_sheet(resumenRows);
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Evento');
+
+  // 2. Impacto por Máquina
+  const machineRows = summary.maquinasImpacto.map(m => ({
+    'Máquina (MaqDes)': m.maqDes,
+    'Minutos Totales': m.minutos,
+    'Horas Totales': m.horas,
+    'Veces / Ocurrencias': m.veces,
+    '% del Tiempo del Evento': `${m.porcentajeDelEvento}%`,
+    'Duración Promedio (min)': m.duracionPromedioMin,
+    'Operadores Involucrados': m.operadoresInvolucrados.join(', '),
+  }));
+  const wsMachines = XLSX.utils.json_to_sheet(machineRows);
+  XLSX.utils.book_append_sheet(wb, wsMachines, 'Desglose_Maquinas');
+
+  // 3. Impacto por Operador
+  const operatorRows = summary.operadoresImpacto.map(op => ({
+    'Operador (DesOperador)': op.operador,
+    'Minutos Totales': op.minutos,
+    'Horas Totales': op.horas,
+    'Veces / Ocurrencias': op.veces,
+    '% del Tiempo del Evento': `${op.porcentajeDelEvento}%`,
+    'Duración Promedio (min)': op.duracionPromedioMin,
+    'Máquinas Involucradas': op.maquinasInvolucradas.join(', '),
+  }));
+  const wsOperators = XLSX.utils.json_to_sheet(operatorRows);
+  XLSX.utils.book_append_sheet(wb, wsOperators, 'Desglose_Operadores');
+
+  // 4. Desglose por Fechas
+  const dateRows = summary.fechasImpacto.map(d => ({
+    'Fecha (Operativa Turno)': d.fecha,
+    'Turno': d.turno,
+    'Minutos Totales': d.minutos,
+    'Horas Totales': d.horas,
+    'Ocurrencias': d.veces,
+    'Máquinas Afectadas': d.maquinas.join(', '),
+    'Operadores': d.operadores.join(', '),
+  }));
+  const wsDates = XLSX.utils.json_to_sheet(dateRows);
+  XLSX.utils.book_append_sheet(wb, wsDates, 'Desglose_Fechas');
+
+  // 5. Bitácora Detallada de Ocurrencias
+  const detailRows = summary.registrosFiltrados.map((r, i) => ({
+    '#': i + 1,
+    'OP (odtcod)': r.odtcod,
+    'Descripción ODT': r.ODTDESCRIP,
+    'Máquina': r.MaqDes,
+    'Operador': r.DesOperador,
+    'Evento / Proceso': r.Proceso,
+    'Turno': r.turno || 'DIA',
+    'Fecha Turno': r.fechaTurno || r.FECHAINI,
+    'Fecha Inicio': r.FECHAINI,
+    'Hora Inicio': r.HORAINI,
+    'Fecha Fin': r.FECHAFIN,
+    'Hora Fin': r.HORAFIN,
+    'Minutos': r.minutos,
+    'Horas': Math.round(((Number(r.minutos) || 0) / 60) * 10) / 10,
+    'Pliegos Buenos': r.PliegosParc,
+    'Pliegos Malos (Scrap)': r.pliegosparcmal,
+  }));
+  const wsDetails = XLSX.utils.json_to_sheet(detailRows);
+  XLSX.utils.book_append_sheet(wb, wsDetails, 'Bitacora_Ocurrencias');
+
+  const cleanEventName = eventName.replace(/[\/\\?%*:|"<>]/g, '_').substring(0, 25);
+  const fileName = `Reporte_Evento_${cleanEventName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
